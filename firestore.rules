@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required) - name of design
+    //   - description: string (optional) - design details
+    //   - imageUrl: string (required) - preview image URL
+    //   - psdUrl: string (optional) - protected PSD URL
+    //   - price: number (required) - price in USD
+    //   - category: string (required) - category (Poster, Logo, etc.)
+    //   - averageRating: number (optional) - average rating
+    //   - reviewCount: number (optional) - total reviews
+    //   - createdAt: timestamp (optional) - creation time
+    //
+    // Collection: products/{productId}/reviews
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required) - UID of reviewer
+    //   - userName: string (required) - name of reviewer
+    //   - rating: number (required, 1-5) - rating
+    //   - comment: string (required) - review text
+    //   - createdAt: timestamp (required) - review time
+    //
+    // Collection: orders
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required) - UID of client
+    //   - clientName: string (required) - name of client
+    //   - designType: string (required) - type of design
+    //   - requirements: map (required) - dynamic requirements
+    //   - status: string (required, enum) - pending, processing, completed, cancelled
+    //   - paymentStatus: string (required, enum) - unpaid, paid
+    //   - amount: number (optional) - total amount
+    //   - createdAt: timestamp (required) - order time
+    //
+    // Collection: orders/{orderId}/messages
+    // Document ID: auto-generated
+    // Fields:
+    //   - orderId: string (required) - ID of order
+    //   - senderId: string (required) - UID of sender
+    //   - senderName: string (required) - name of sender
+    //   - content: string (required) - message text
+    //   - timestamp: timestamp (required) - message time
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (request.auth.token.email == "katutheman@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidRating(rating) {
+      return rating is number && rating >= 1 && rating <= 5;
+    }
+
+    function isValidStatus(status) {
+      return status in ['pending', 'processing', 'completed', 'cancelled'];
+    }
+
+    function isValidPaymentStatus(status) {
+      return status in ['unpaid', 'paid'];
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Products: Publicly readable, only admin can write
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      // Reviews: Authenticated users can create, anyone can read
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && 
+          request.resource.data.userId == request.auth.uid &&
+          isValidRating(request.resource.data.rating) &&
+          request.resource.data.comment is string &&
+          request.resource.data.comment.size() < 1000;
+        allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      }
+    }
+
+    // Orders: Users can read/write their own orders, admin can read/write all
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        isValidStatus(request.resource.data.status) &&
+        isValidPaymentStatus(request.resource.data.paymentStatus);
+      allow update: if isAuthenticated() && (
+        (isOwner(resource.data.userId) && 
+         request.resource.data.status == resource.data.status && // Users can't change status
+         request.resource.data.paymentStatus == resource.data.paymentStatus) || // Users can't change payment status
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+
+      // Messages: Users in the order can read/write
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid || 
+          isAdmin()
+        );
+        allow create: if isAuthenticated() && (
+          get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid || 
+          isAdmin()
+        ) && request.resource.data.senderId == request.auth.uid;
+      }
+    }
+
+    // Users: Private profiles
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+  }
+}
