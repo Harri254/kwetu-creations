@@ -4,7 +4,8 @@ import { toast } from 'react-hot-toast';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     subject: '',
     message: ''
@@ -18,7 +19,7 @@ export default function ContactPage() {
     // Simulate email sending
     setTimeout(() => {
       toast.success('Message sent! We will get back to you soon.');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ firstName: '', lastName: '', email: '', subject: '', message: '' });
       setSending(false);
     }, 1500);
   };
@@ -86,16 +87,26 @@ export default function ContactPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Your Name</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">First Name</label>
                 <input 
                   type="text" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                   required 
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Last Name</label>
+                <input 
+                  type="text" 
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                  required 
+                />
+              </div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Email Address</label>
                 <input 
                   type="email" 

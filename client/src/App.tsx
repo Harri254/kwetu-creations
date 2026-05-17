@@ -10,6 +10,7 @@ import ContactPage from './pages/ContactPage';
 import ChatPage from './pages/ChatPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
 import ProductsPage from './pages/ProductsPage';
+import LoginPage from './pages/LoginPage';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/services" element={<ServicePage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/chat/:orderId" element={<ChatPage />} />
               <Route path="/product/:productId" element={<ProductDetailsPage />} />
             </Routes>

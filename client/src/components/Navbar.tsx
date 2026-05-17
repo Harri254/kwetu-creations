@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import { LogIn, LogOut, User as UserIcon, Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -7,8 +7,9 @@ import { cn } from "../lib/utils";
 import logo from "../assets/KwetuArtwork.png";
 
 export default function Navbar() {
-  const { user, login, logout } = useFirebase();
+  const { user, logout } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const navLinkClass =
     "relative text-primary/70 hover:text-secondary transition-colors after:absolute after:left-0 after:-bottom-2 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-secondary after:transition-transform after:duration-300 hover:after:scale-x-100 [&.active]:text-secondary [&.active]:after:scale-x-100";
 
@@ -59,7 +60,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={login}
+                onClick={() => navigate("/login")}
                 className="flex items-center space-x-2 rounded-full bg-secondary px-5 py-2.5 text-white shadow-[0_12px_24px_rgba(196,103,27,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#ad5817]"
               >
                 <LogIn className="w-4 h-4" />
@@ -140,7 +141,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => {
-                login();
+                navigate("/login");
                 setIsOpen(false);
               }}
               className="w-full rounded-xl bg-secondary px-3 py-2 text-left text-white shadow-[0_10px_20px_rgba(196,103,27,0.2)]"

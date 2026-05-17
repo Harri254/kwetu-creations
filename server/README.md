@@ -1,11 +1,10 @@
 ## Backend
 
-This directory contains backend-facing Firebase assets and data model definitions.
+This directory contains the local server and mock data used by the project.
 
 ### Files
 
-- `firebase-blueprint.json`: Firestore entity and collection blueprint
-- `firestore.rules`: Firestore security rules
+- `mockdata.json`: local mock data backing the client-side showcase and demo flows
 - `package.json`: server runtime and tooling dependencies
 
 The web app itself lives in `client/`.
