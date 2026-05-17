@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@theme{
+  --breakpoint-sm: 37rem;
+  --breakpoint-vsm: 29rem;
+  --color-primary:#072E4A;
+  --color-secondary:#C4671B;
+  --color-tertiary:#ffffff;
+}
+
+:root {
+  color: var(--color-primary);
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--color-secondary) 12%, white) 0%, transparent 35%),
+    linear-gradient(180deg, #f8fbfd 0%, #f5f7f8 100%);
+}
+
+body {
+  min-width: 320px;
+  background: transparent;
+  color: var(--color-primary);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-secondary) 28%, white);
+  color: var(--color-primary);
+}

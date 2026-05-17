@@ -15,9 +15,9 @@ export default function App() {
   return (
     <FirebaseProvider>
       <Router>
-        <div className="min-h-screen bg-neutral-50 flex flex-col font-sans">
+        <div className="min-h-screen flex flex-col font-sans text-primary">
           <Navbar />
-          <main className="flex-grow">
+          <main className="grow">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/about" element={<AboutPage />} />
