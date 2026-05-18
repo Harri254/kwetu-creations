@@ -1,41 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useFirebase } from "../contexts/FirebaseContext";
+import { useAuth } from "../contexts/AuthContext";
 
 type AuthMode = "login" | "register";
 
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
-      <path
-        d="M21.8 12.23c0-.72-.06-1.25-.2-1.8H12v3.4h5.64c-.11.84-.7 2.1-2.02 2.95l-.02.11 2.73 2.11.19.02c1.78-1.64 2.8-4.06 2.8-6.79Z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 22c2.76 0 5.08-.9 6.77-2.44l-3.22-2.5c-.86.6-2.02 1.02-3.55 1.02-2.7 0-5-1.78-5.82-4.24l-.1.01-2.84 2.2-.03.1A10.24 10.24 0 0 0 12 22Z"
-        fill="#34A853"
-      />
-      <path
-        d="M6.18 13.84A6.14 6.14 0 0 1 5.86 12c0-.64.11-1.27.3-1.84l-.01-.12-2.88-2.23-.09.04A10 10 0 0 0 2 12c0 1.6.38 3.1 1.05 4.45l3.13-2.61Z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.92c1.92 0 3.21.83 3.95 1.52l2.88-2.8C17.07 3.01 14.76 2 12 2a10 10 0 0 0-8.82 5.45l3.1 2.42c.84-2.46 3.13-3.95 5.72-3.95Z"
-        fill="#EA4335"
-      />
-    </svg>
-  );
-}
-
 export default function LoginPage() {
-  const { user, loginWithGoogle, loginWithEmail, registerWithEmail } =
-    useFirebase();
+  const { user, loginWithEmail, registerWithEmail } =
+    useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState<AuthMode>("login");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -82,19 +60,6 @@ export default function LoginPage() {
       const message =
         error instanceof Error ? error.message : "Authentication failed";
       toast.error(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setSubmitting(true);
-    try {
-      await loginWithGoogle();
-      toast.success("Signed in with Google");
-      navigate(redirectTo, { replace: true });
-    } catch {
-      toast.error("Google sign-in failed");
     } finally {
       setSubmitting(false);
     }
@@ -194,15 +159,29 @@ export default function LoginPage() {
                 <label className="mb-2 block text-sm font-medium text-primary">
                   Password
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  className="w-full rounded-2xl border border-primary/10 bg-white px-4 py-4 outline-none shadow-sm transition-all placeholder:text-primary/35 focus:border-secondary focus:ring-2 focus:ring-secondary/15"
-                  required
-                />
+                <div className="flex items-center rounded-2xl border border-primary/10 bg-white pr-3 shadow-sm transition-all focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/15">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your password"
+                    className="w-full rounded-2xl bg-transparent px-4 py-4 outline-none placeholder:text-primary/35"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="rounded-full p-2 text-primary/45 transition-colors hover:bg-primary/5 hover:text-primary"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -216,24 +195,6 @@ export default function LoginPage() {
                 </span>
               </button>
             </form>
-
-            <div className="my-8 flex items-center gap-3">
-              <div className="h-px flex-1 bg-primary/10" />
-              <span className="text-xs font-bold uppercase tracking-[0.25em] text-primary/35">
-                Or
-              </span>
-              <div className="h-px flex-1 bg-primary/10" />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={submitting}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary/10 bg-white px-6 py-4 font-semibold text-primary shadow-sm transition-all hover:border-secondary/30 hover:bg-primary/5 disabled:opacity-50"
-            >
-              <GoogleIcon />
-              <span>Continue with Google</span>
-            </button>
 
             <p className="mt-8 text-center text-sm text-primary/55">
               Back to{" "}

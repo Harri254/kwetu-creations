@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Search, Filter, SlidersHorizontal, Layout } from 'lucide-react';
-import { getProducts } from '../lib/mockStore';
+import { getProducts } from '../lib/dataStore';
 import type { Product } from '../data/mockdata';
 
 const CATEGORIES = ['All', 'Websites', 'Branding', 'Social Media', 'Automation', 'Print Design'];
@@ -44,7 +44,7 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex w-full flex-col gap-4 sm:flex-row md:w-auto">
-          <div className="relative flex-grow md:w-64">
+          <div className="relative grow md:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary/40" />
             <input
               type="text"
@@ -72,7 +72,7 @@ export default function ProductsPage() {
       {loading ? (
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="aspect-[4/5] rounded-xl bg-primary/8 animate-pulse" />
+            <div key={i} className="aspect-4/5 rounded-xl bg-primary/8 animate-pulse" />
           ))}
         </div>
       ) : (

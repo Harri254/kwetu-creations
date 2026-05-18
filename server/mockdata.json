@@ -160,5 +160,146 @@
       "availability": "Mon-Fri, 10am-6pm"
     }
   ],
+  "services": [
+    {
+      "serviceType": "Poster",
+      "slug": "graphic-design",
+      "title": "Graphic Design",
+      "description": "Posters, flyers, and social media assets.",
+      "icon": "Palette",
+      "basePrice": 25,
+      "isActive": true,
+      "requirementFields": [
+        {
+          "key": "style",
+          "label": "Design Style",
+          "type": "select",
+          "required": true,
+          "options": ["Minimalist", "Modern", "Vintage", "Bold"]
+        },
+        {
+          "key": "colors",
+          "label": "Color Palette Preference",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g. Blue and White, Earthy tones"
+        },
+        {
+          "key": "content",
+          "label": "Specific Text/Content",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "What text should be included?"
+        }
+      ]
+    },
+    {
+      "serviceType": "Logo",
+      "slug": "logo-branding",
+      "title": "Logo & Branding",
+      "description": "Unique visual identity for your brand.",
+      "icon": "Layout",
+      "basePrice": 50,
+      "isActive": true,
+      "requirementFields": [
+        {
+          "key": "style",
+          "label": "Design Style",
+          "type": "select",
+          "required": true,
+          "options": ["Minimalist", "Modern", "Vintage", "Bold"]
+        },
+        {
+          "key": "colors",
+          "label": "Color Palette Preference",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g. Blue and White, Earthy tones"
+        },
+        {
+          "key": "content",
+          "label": "Specific Text/Content",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "What text should be included?"
+        }
+      ]
+    },
+    {
+      "serviceType": "Website",
+      "slug": "web-development",
+      "title": "Web Development",
+      "description": "Custom business websites and landing pages.",
+      "icon": "Globe",
+      "basePrice": 250,
+      "isActive": true,
+      "requirementFields": [
+        {
+          "key": "pages",
+          "label": "Number of Pages",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g. 5"
+        },
+        {
+          "key": "features",
+          "label": "Key Features Needed",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "e.g. Contact form, Blog, E-commerce"
+        }
+      ]
+    },
+    {
+      "serviceType": "AI Automation",
+      "slug": "ai-automation",
+      "title": "AI Automation",
+      "description": "Streamline workflows with AI & chatbots.",
+      "icon": "Zap",
+      "basePrice": 150,
+      "isActive": true,
+      "requirementFields": [
+        {
+          "key": "workflow",
+          "label": "Current Workflow Description",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Describe the process you want to automate"
+        },
+        {
+          "key": "platform",
+          "label": "Platform Integration",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g. WhatsApp, Website, Slack"
+        }
+      ]
+    },
+    {
+      "serviceType": "Voice Assistant",
+      "slug": "voice-assistant",
+      "title": "Voice Assistant",
+      "description": "Interactive voice solutions for your site.",
+      "icon": "MessageSquare",
+      "basePrice": 200,
+      "isActive": true,
+      "requirementFields": [
+        {
+          "key": "workflow",
+          "label": "Current Workflow Description",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Describe the process you want to automate"
+        },
+        {
+          "key": "platform",
+          "label": "Platform Integration",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g. WhatsApp, Website, Slack"
+        }
+      ]
+    }
+  ],
   "orders": []
 }

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useFirebase } from "../contexts/FirebaseContext";
+import { useAuth } from "../contexts/AuthContext";
 import { LogIn, LogOut, User as UserIcon, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../lib/utils";
@@ -7,7 +7,7 @@ import { cn } from "../lib/utils";
 import logo from "../assets/KwetuArtwork.png";
 
 export default function Navbar() {
-  const { user, logout } = useFirebase();
+  const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const navLinkClass =

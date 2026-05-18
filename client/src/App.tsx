@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { FirebaseProvider } from './contexts/FirebaseContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
@@ -14,7 +14,7 @@ import LoginPage from './pages/LoginPage';
 
 export default function App() {
   return (
-    <FirebaseProvider>
+    <AuthProvider>
       <Router>
         <div className="min-h-screen flex flex-col font-sans text-primary">
           <Navbar />
@@ -34,7 +34,7 @@ export default function App() {
           <Toaster position="bottom-right" />
         </div>
       </Router>
-    </FirebaseProvider>
+    </AuthProvider>
   );
 }
 

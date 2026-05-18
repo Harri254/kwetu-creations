@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useFirebase } from '../contexts/FirebaseContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Star, MessageSquare, ShieldCheck, ArrowLeft, Loader2, Send, User as UserIcon, Globe, ExternalLink } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
-import { addReviewToProduct, getProductById } from '../lib/mockStore';
+import { addReviewToProduct, getProductById } from '../lib/dataStore';
 import type { Product, Review } from '../data/mockdata';
 
 export default function ProductDetailsPage() {
   const { productId } = useParams<{ productId: string }>();
-  const { user } = useFirebase();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
@@ -57,7 +57,7 @@ export default function ProductDetailsPage() {
     setSubmittingReview(true);
     try {
       const review = await addReviewToProduct(productId, {
-        userId: user.uid,
+        userId: user.id,
         userName: user.displayName || 'Anonymous',
         rating: newReview.rating,
         comment: newReview.comment,
@@ -113,7 +113,7 @@ export default function ProductDetailsPage() {
                 type="button"
                 onClick={() => setSelectedImage(image)}
                 className={cn(
-                  'aspect-square w-24 flex-shrink-0 overflow-hidden rounded-xl border bg-primary/6 transition-all',
+                  'aspect-square w-24 shrink-0 overflow-hidden rounded-xl border bg-primary/6 transition-all',
                   selectedImage === image
                     ? 'border-secondary shadow-[0_0_0_2px_rgba(196,103,27,0.2)] opacity-100'
                     : 'border-primary/10 opacity-55 hover:opacity-100',
@@ -212,10 +212,10 @@ export default function ProductDetailsPage() {
               {reviews.length > 0 ? (
                 reviews.map((review) => (
                   <div key={review.id} className="flex space-x-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/6">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/6">
                       <UserIcon className="h-5 w-5 text-primary/40" />
                     </div>
-                    <div className="flex-grow">
+                    <div className="grow">
                       <div className="mb-1 flex items-center justify-between">
                         <h4 className="font-bold text-primary">{review.userName}</h4>
                         <span className="text-[10px] font-medium text-primary/35">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useFirebase } from '../contexts/FirebaseContext';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import {
   Send,
@@ -19,12 +19,12 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '../lib/utils';
-import { addMessageToOrder, getOrderById, getSpecialistById, markOrderPaid } from '../lib/mockStore';
+import { addMessageToOrder, getOrderById, getSpecialistById, markOrderPaid } from '../lib/dataStore';
 import type { Order, Specialist } from '../data/mockdata';
 
 export default function ChatPage() {
   const { orderId } = useParams<{ orderId: string }>();
-  const { user, loading: authLoading } = useFirebase();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [specialist, setSpecialist] = useState<Specialist | null>(null);
@@ -48,7 +48,7 @@ export default function ChatPage() {
     const fetchOrder = async () => {
       const nextOrder = await getOrderById(orderId);
       if (nextOrder) {
-        if (nextOrder.userId !== user.uid) {
+        if (nextOrder.userId !== user.id) {
           toast.error('Unauthorized access');
           navigate('/login');
           return;
@@ -78,7 +78,7 @@ export default function ChatPage() {
   }, [order?.messages]);
 
   const getOutgoingMessageState = (messageIndex: number) => {
-    const ownUserId = user?.uid;
+    const ownUserId = user?.id;
     if (!ownUserId || !order) return 'delivered';
 
     const laterMessages = order.messages.slice(messageIndex + 1);
@@ -105,7 +105,7 @@ export default function ChatPage() {
     try {
       const message = await addMessageToOrder(orderId, {
         orderId,
-        senderId: user.uid,
+        senderId: user.id,
         senderName: user.displayName || 'Client',
         content: newMessage,
       });
@@ -217,7 +217,7 @@ export default function ChatPage() {
       </div>
 
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        <div className="flex w-full flex-1 flex-col overflow-hidden rounded-[2rem] border border-primary/10 bg-white shadow-[0_24px_60px_rgba(7,46,74,0.12)]">
+        <div className="flex w-full flex-1 flex-col overflow-hidden rounded-4xl border border-primary/10 bg-white shadow-[0_24px_60px_rgba(7,46,74,0.12)]">
           {specialist && (
             <div className="border-b border-primary/10 bg-[linear-gradient(135deg,rgba(7,46,74,0.04),rgba(196,103,27,0.08))] px-5 py-4 backdrop-blur-sm">
               <div className="flex items-center gap-3">
@@ -227,22 +227,6 @@ export default function ChatPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-bold text-primary">{specialist.name}</h2>
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider',
-                        specialist.status === 'online'
-                          ? 'bg-emerald-50 text-emerald-600'
-                          : 'bg-neutral-100 text-neutral-500',
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'h-2 w-2 rounded-full',
-                          specialist.status === 'online' ? 'bg-emerald-500' : 'bg-neutral-400',
-                        )}
-                      />
-                      {specialist.status}
-                    </span>
                   </div>
                   <p className="text-sm text-primary/60">{specialist.title}</p>
                 </div>
@@ -252,10 +236,10 @@ export default function ChatPage() {
 
           <div
             ref={messagesContainerRef}
-            className="min-h-[300px] flex-1 space-y-4 bg-[radial-gradient(circle_at_top,_rgba(196,103,27,0.08),_transparent_28%),linear-gradient(180deg,rgba(248,251,253,0.98),rgba(244,247,249,0.98))] p-5 pb-4 lg:max-h-[calc(100vh-360px)] lg:overflow-y-auto"
+            className="min-h-75 flex-1 space-y-4 bg-[radial-gradient(circle_at_top,_rgba(196,103,27,0.08),_transparent_28%),linear-gradient(180deg,rgba(248,251,253,0.98),rgba(244,247,249,0.98))] p-5 pb-4 lg:max-h-[calc(100vh-360px)] lg:overflow-y-auto"
           >
             {order.messages.map((msg, index) => {
-              const isMe = msg.senderId === user?.uid;
+              const isMe = msg.senderId === user?.id;
               const isSystem = msg.senderId === 'system';
 
               if (isSystem) {
@@ -307,7 +291,7 @@ export default function ChatPage() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="flex-grow bg-transparent px-2 py-3 text-primary outline-none placeholder:text-primary/45"
+                className="grow bg-transparent px-2 py-3 text-primary outline-none placeholder:text-primary/45"
               />
             </div>
             <button
@@ -320,7 +304,7 @@ export default function ChatPage() {
           </form>
         </div>
 
-        <div className="hidden w-80 flex-shrink-0 space-y-6 self-start md:block">
+        <div className="hidden w-80 shrink-0 space-y-6 self-start md:block">
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <h3 className="mb-4 flex items-center space-x-2 font-bold text-neutral-900">
               <ShieldCheck className="h-4 w-4 text-blue-600" />
@@ -334,9 +318,9 @@ export default function ChatPage() {
                     <span>{specialist.name}</span>
                   </div>
                   <p className="text-xs text-primary/60">{specialist.title}</p>
-                  <p className="mt-2 text-xs text-primary/70">
-                    {specialist.status === 'online' ? 'Currently online' : 'Currently offline'} | {specialist.availability}
-                  </p>
+                  {specialist.availability && (
+                    <p className="mt-2 text-xs text-primary/70">{specialist.availability}</p>
+                  )}
                 </div>
               )}
               <div className="flex justify-between">
@@ -373,7 +357,7 @@ export default function ChatPage() {
       </div>
 
       {showPaymentModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="p-8">
               <div className="mb-8 flex items-center justify-between">
@@ -409,7 +393,7 @@ export default function ChatPage() {
                             value={mpesaPhone}
                             onChange={(e) => setMpesaPhone(e.target.value)}
                             placeholder="2547XXXXXXXX"
-                            className="flex-grow rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                            className="grow rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                       </div>

@@ -3,7 +3,7 @@ import ProductCard from '../components/ProductCard';
 import { ArrowRight, Sparkles, Layout, Zap, MessageSquare, ShieldCheck, Globe, Quote, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { getProducts } from '../lib/mockStore';
+import { getProducts } from '../lib/dataStore';
 import type { Product, Review } from '../data/mockdata';
 
 export default function LandingPage() {
@@ -41,7 +41,7 @@ export default function LandingPage() {
     <div className="space-y-24 pb-24">
       <section className="relative overflow-hidden bg-primary py-24 text-white">
         <div className="absolute inset-0 opacity-25">
-          <div className="absolute top-0 left-0 h-full w-full bg-gradient-to-br from-secondary/40 via-transparent to-white/5" />
+          <div className="absolute top-0 left-0 h-full w-full bg-linear-to-br from-secondary/40 via-transparent to-white/5" />
           <img src="https://picsum.photos/seed/abstract/1920/1080?blur=10" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
         </div>
 
@@ -73,7 +73,7 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }} className="relative">
               {latestProduct ? (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-md">
-                  <img src={latestProduct.imageUrl} alt={latestProduct.title} className="h-[400px] w-full rounded-xl object-cover shadow-lg" referrerPolicy="no-referrer" />
+                  <img src={latestProduct.imageUrl} alt={latestProduct.title} className="h-100 w-full rounded-xl object-cover shadow-lg" referrerPolicy="no-referrer" />
                   <div className="mt-6 flex items-end justify-between">
                     <div>
                       <h3 className="text-2xl font-bold">{latestProduct.title}</h3>
@@ -88,7 +88,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex h-[400px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5">
+                <div className="flex h-100 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5">
                   <p className="text-white/50">Loading latest creation...</p>
                 </div>
               )}
@@ -169,7 +169,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {clientReviews.length > 0 ? (
             clientReviews.map((review) => (
-              <div key={review.id} className="rounded-[2rem] border border-primary/10 bg-white p-8 shadow-sm">
+              <div key={review.id} className="rounded-4xl border border-primary/10 bg-white p-8 shadow-sm">
                 <div className="mb-6 flex items-start justify-between gap-4">
                   <div>
                     <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-secondary">

@@ -1,37 +1,32 @@
 import React, { useState } from 'react';
-import { useFirebase } from '../contexts/FirebaseContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Layout, Palette, Zap, MessageSquare, Globe, ArrowRight, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
-import { createOrder, getSpecialistForService } from '../lib/mockStore';
-import type { Specialist } from '../data/mockdata';
+import { createOrder, getServices, getSpecialistForService } from '../lib/dataStore';
+import type { Service, Specialist } from '../data/mockdata';
+import { useEffect } from 'react';
 
 type ServiceType = 'Poster' | 'Logo' | 'Website' | 'AI Automation' | 'Voice Assistant';
 
-interface ServiceOption {
-  id: ServiceType;
-  title: string;
-  description: string;
-  icon: any;
-  basePrice: number;
-}
-
-const serviceOptions: ServiceOption[] = [
-  { id: 'Poster', title: 'Graphic Design', description: 'Posters, flyers, and social media assets.', icon: Palette, basePrice: 25 },
-  { id: 'Logo', title: 'Logo & Branding', description: 'Unique visual identity for your brand.', icon: Layout, basePrice: 50 },
-  { id: 'Website', title: 'Web Development', description: 'Custom business websites and landing pages.', icon: Globe, basePrice: 250 },
-  { id: 'AI Automation', title: 'AI Automation', description: 'Streamline workflows with AI & chatbots.', icon: Zap, basePrice: 150 },
-  { id: 'Voice Assistant', title: 'Voice Assistant', description: 'Interactive voice solutions for your site.', icon: MessageSquare, basePrice: 200 },
-];
+const ICONS = {
+  Layout,
+  Palette,
+  Zap,
+  MessageSquare,
+  Globe,
+};
 
 export default function ServicePage() {
-  const { user } = useFirebase();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
   const [assignedSpecialist, setAssignedSpecialist] = useState<Specialist | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
+  const [servicesLoading, setServicesLoading] = useState(true);
   const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
@@ -39,6 +34,24 @@ export default function ServicePage() {
     email: user?.email || '',
     requirements: {} as Record<string, string>,
   });
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const nextServices = await getServices();
+        setServices(nextServices);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        toast.error('Failed to load services.');
+      } finally {
+        setServicesLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  const selectedServiceRecord = services.find((service) => service.serviceType === selectedService);
 
   const handleServiceSelect = async (service: ServiceType) => {
     setSelectedService(service);
@@ -73,18 +86,18 @@ export default function ServicePage() {
     try {
       const order = await createOrder(
         {
-          userId: user.uid,
+          userId: user.id,
           clientName: formData.clientName,
           designType: selectedService,
           specialistId: assignedSpecialist?.id || '',
           requirements: formData.requirements,
           status: 'pending',
           paymentStatus: 'unpaid',
-          amount: serviceOptions.find((s) => s.id === selectedService)?.basePrice || 0,
+          amount: selectedServiceRecord?.basePrice || 0,
         },
         {
           orderId: 'temp',
-          senderId: user.uid,
+          senderId: user.id,
           senderName: user.displayName || 'Client',
           content: 'I have sent my order kindly. Process it.',
         },
@@ -101,61 +114,55 @@ export default function ServicePage() {
   };
 
   const renderRequirementsForm = () => {
-    switch (selectedService) {
-      case 'Poster':
-      case 'Logo':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Design Style</label>
-              <select name="req_style" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required>
-                <option value="">Select a style</option>
-                <option value="Minimalist">Minimalist</option>
-                <option value="Modern">Modern</option>
-                <option value="Vintage">Vintage</option>
-                <option value="Bold">Bold & Vibrant</option>
-              </select>
+    if (!selectedServiceRecord) return null;
+
+    return (
+      <div className="space-y-4">
+        {selectedServiceRecord.requirementFields.map((field) => {
+          const fieldName = `req_${field.key}`;
+          const sharedClassName = 'w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500';
+
+          return (
+            <div key={field.key}>
+              <label className="mb-1 block text-sm font-medium text-neutral-700">{field.label}</label>
+              {field.type === 'select' ? (
+                <select
+                  name={fieldName}
+                  onChange={handleInputChange}
+                  className={sharedClassName}
+                  required={field.required}
+                  defaultValue=""
+                >
+                  <option value="">Select an option</option>
+                  {(field.options || []).map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              ) : field.type === 'textarea' ? (
+                <textarea
+                  name={fieldName}
+                  rows={3}
+                  placeholder={field.placeholder || ''}
+                  onChange={handleInputChange}
+                  className={sharedClassName}
+                  required={field.required}
+                />
+              ) : (
+                <input
+                  type={field.type === 'number' ? 'number' : 'text'}
+                  name={fieldName}
+                  placeholder={field.placeholder || ''}
+                  onChange={handleInputChange}
+                  className={sharedClassName}
+                  required={field.required}
+                  min={field.type === 'number' ? '1' : undefined}
+                />
+              )}
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Color Palette Preference</label>
-              <input type="text" name="req_colors" placeholder="e.g. Blue and White, Earthy tones" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Specific Text/Content</label>
-              <textarea name="req_content" rows={3} placeholder="What text should be included?" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required />
-            </div>
-          </div>
-        );
-      case 'Website':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Number of Pages</label>
-              <input type="number" name="req_pages" min="1" placeholder="e.g. 5" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Key Features Needed</label>
-              <textarea name="req_features" rows={3} placeholder="e.g. Contact form, Blog, E-commerce" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required />
-            </div>
-          </div>
-        );
-      case 'AI Automation':
-      case 'Voice Assistant':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Current Workflow Description</label>
-              <textarea name="req_workflow" rows={3} placeholder="Describe the process you want to automate" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">Platform Integration</label>
-              <input type="text" name="req_platform" placeholder="e.g. WhatsApp, Website, Slack" onChange={handleInputChange} className="w-full rounded-lg border border-neutral-200 px-4 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500" required />
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -182,18 +189,27 @@ export default function ServicePage() {
       <AnimatePresence mode="wait">
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {serviceOptions.map((option) => (
-              <button key={option.id} onClick={() => handleServiceSelect(option.id)} className="group flex items-start space-x-4 rounded-2xl border border-neutral-200 bg-white p-6 text-left transition-all hover:border-blue-500 hover:shadow-lg">
-                <div className="rounded-xl bg-neutral-50 p-3 transition-colors group-hover:bg-blue-50">
-                  <option.icon className="h-6 w-6 text-neutral-600 group-hover:text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="mb-1 font-bold text-neutral-900">{option.title}</h3>
-                  <p className="mb-2 text-sm text-neutral-500">{option.description}</p>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Starts at ${option.basePrice}</span>
-                </div>
-              </button>
-            ))}
+            {servicesLoading ? (
+              [1, 2, 3, 4].map((item) => (
+                <div key={item} className="h-36 animate-pulse rounded-2xl bg-primary/8" />
+              ))
+            ) : (
+              services.map((option) => {
+                const Icon = ICONS[option.icon as keyof typeof ICONS] || Layout;
+                return (
+                  <button key={option.id} onClick={() => handleServiceSelect(option.serviceType)} className="group flex items-start space-x-4 rounded-2xl border border-neutral-200 bg-white p-6 text-left transition-all hover:border-blue-500 hover:shadow-lg">
+                    <div className="rounded-xl bg-neutral-50 p-3 transition-colors group-hover:bg-blue-50">
+                      <Icon className="h-6 w-6 text-neutral-600 group-hover:text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="mb-1 font-bold text-neutral-900">{option.title}</h3>
+                      <p className="mb-2 text-sm text-neutral-500">{option.description}</p>
+                      <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Starts at ${option.basePrice}</span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </motion.div>
         )}
 
@@ -205,8 +221,8 @@ export default function ServicePage() {
 
             <h2 className="mb-8 flex items-center space-x-3 text-2xl font-bold">
               <span className="rounded-lg bg-blue-50 p-2">
-                {serviceOptions.find((s) => s.id === selectedService)?.icon &&
-                  React.createElement(serviceOptions.find((s) => s.id === selectedService)!.icon, { className: 'h-6 w-6 text-blue-600' })}
+                {selectedServiceRecord &&
+                  React.createElement(ICONS[selectedServiceRecord.icon as keyof typeof ICONS] || Layout, { className: 'h-6 w-6 text-blue-600' })}
               </span>
               <span>{selectedService} Requirements</span>
             </h2>
@@ -273,7 +289,7 @@ export default function ServicePage() {
 
               <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50 p-6">
                 <span className="font-bold text-blue-900">Estimated Total</span>
-                <span className="text-2xl font-bold text-blue-600">${serviceOptions.find((s) => s.id === selectedService)?.basePrice}</span>
+                <span className="text-2xl font-bold text-blue-600">${selectedServiceRecord?.basePrice}</span>
               </div>
             </div>
 
